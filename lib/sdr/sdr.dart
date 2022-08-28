@@ -9,19 +9,37 @@ Map<String, Widget Function(SdrBuildWidgetData)> sdrBuilders = {
   "text": SdrBuilders.buildText,
   "container": SdrBuilders.buildContainer,
   "column": SdrBuilders.buildColumn,
+  "row": SdrBuilders.buildRow,
   "padding": SdrBuilders.buildPadding,
   "button": SdrBuilders.buildButton,
+  "scroll": SdrBuilders.buildScrollView,
+  "inkwell": SdrBuilders.buildInkWell,
+  "wrap": SdrBuilders.buildWrap,
+  "expanded": SdrBuilders.buildExpanded,
+  "sdr_area": SdrBuilders.buildSdrArea,
+  "center": SdrBuilders.buildCenter,
+  "vertical_divider": SdrBuilders.buildVerticalDivider,
+  "divider": SdrBuilders.buildDivider,
+  "image": SdrBuilders.buildImage,
+  "audio_player": SdrBuilders.buildAudioPlayer,
 };
 
 Map<String, Function(Map<String, dynamic>, SdrBuildWidgetData)> sdrActions = {
   "set_variable": SdrActions.setVariable,
   "increment_variable": SdrActions.incrementVariable,
   "decrement_variable": SdrActions.decrementVariable,
+  "sdr_request": SdrActions.sdrRequest,
 };
 
 Widget buildWidget(SdrBuildWidgetData build) {
   final data = build.data;
-  String type = data['type'];
+  print('build: ${build.areaId}');
+  String? type = data['type'];
+
+  if (type == null) {
+    return const SizedBox();
+  }
+
   bool isReactive = false;
   if (type.startsWith('\$')) {
     isReactive = true;
@@ -58,13 +76,34 @@ executeActions(dynamic actions, SdrBuildWidgetData build) {
     final actionFunction = sdrActions[action['_']];
     if (actionFunction == null) {
       print('Unknown action ${action['_']}');
+      print(action);
       continue;
     }
     actionFunction(action, build);
   }
 }
 
+sdrUpdate(Map<String, dynamic> updateData) {
+  Map<String, dynamic> areas = updateData['areas'];
+
+  for (String areaId in areas.keys) {
+    sdrAreaData[areaId] = SdrBuildWidgetData(
+      areaId: areaId,
+      data: areas[areaId],
+      variables: {},
+    );
+    sdrAreaWidget[areaId] = buildWidget(sdrAreaData[areaId]!);
+  }
+  // sdrAreaWidget.refresh();
+
+  // for (String key in sdrAreaWidget.keys) {
+  //   sdrAreaWidget[key] = buildWidget(sdrAreaData[key]!);
+  // }
+  // print('sdrUpdate completed');
+}
+
 RxMap<String, Widget> sdrAreaWidget = RxMap<String, Widget>();
+Map<String, SdrBuildWidgetData> sdrAreaData = {};
 Map<String, Map<String, Rx<dynamic>>> sdrAreaRxVariables = {};
 
 class SdrBuildWidgetData {

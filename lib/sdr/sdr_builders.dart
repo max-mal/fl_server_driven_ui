@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:cshell/sdr/sdr.dart';
+import 'package:cshell/sdr/sdr_area.dart';
+import 'package:cshell/widgets/audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:cshell/extensions/color.dart';
+import 'package:get/get.dart';
 
 class SdrBuilders {
   static _v(dynamic value, SdrBuildWidgetData build) {
@@ -19,9 +24,13 @@ class SdrBuilders {
     return value;
   }
 
-  static Widget buildText(SdrBuildWidgetData build) {
-    final data = build.data;
-    final textStyle = TextStyle(
+  static TextStyle? _getTextStyle(
+      Map<String, dynamic>? data, SdrBuildWidgetData build) {
+    if (data == null) {
+      return null;
+    }
+
+    return TextStyle(
       color: data['color'] != null
           ? HexColor.fromHex(_v(data['color'], build))
           : null,
@@ -29,10 +38,13 @@ class SdrBuilders {
           ? null
           : double.tryParse(_v(data['fontSize'], build).toString()),
     );
+  }
 
+  static Widget buildText(SdrBuildWidgetData build) {
+    final data = build.data;
     return Text(
       _v(data['text'], build).toString(),
-      style: textStyle,
+      style: _getTextStyle(data, build),
       textAlign: _getTextAlign(_v(data['textAlign'], build)),
     );
   }
@@ -157,6 +169,21 @@ class SdrBuilders {
     );
   }
 
+  static Widget buildRow(SdrBuildWidgetData build) {
+    final data = build.data;
+    final List<dynamic> children = _v(data['children'], build);
+    return Row(
+      mainAxisSize: _v(data['size'], build) == 'min'
+          ? MainAxisSize.min
+          : MainAxisSize.max,
+      children: children.map((e) => buildWidget(build.nested(e))).toList(),
+      mainAxisAlignment:
+          _getMainAxisAlignment(_v(data['mainAxisAlignment'], build)),
+      crossAxisAlignment:
+          _getCrossAxisAlignment(_v(data['crossAxisAlignment'], build)),
+    );
+  }
+
   static MainAxisAlignment _getMainAxisAlignment(String? alignment) {
     switch (alignment) {
       case "end":
@@ -176,8 +203,6 @@ class SdrBuilders {
 
   static CrossAxisAlignment _getCrossAxisAlignment(String? alignment) {
     switch (alignment) {
-      case null:
-        return CrossAxisAlignment.center;
       case "end":
         return CrossAxisAlignment.end;
       case "center":
@@ -213,6 +238,155 @@ class SdrBuilders {
       child: buildWidget(
         build.nested(_v(data['child'], build)),
       ),
+      style: _getButtonStyle(data['style'], build),
+    );
+  }
+
+  static ButtonStyle? _getButtonStyle(
+      Map<String, dynamic>? data, SdrBuildWidgetData build) {
+    if (data == null) {
+      return null;
+    }
+
+    return ButtonStyle(
+      textStyle: data['text'] == null
+          ? null
+          : MaterialStateProperty.all(
+              _getTextStyle(data['text'], build),
+            ),
+      backgroundColor: data['backgroundColor'] == null
+          ? null
+          : MaterialStateProperty.all(
+              HexColor.fromHex(_v(data['backgroundColor'], build)),
+            ),
+    );
+  }
+
+  static Widget buildScrollView(SdrBuildWidgetData build) {
+    final data = build.data;
+    final controller = ScrollController();
+    return SingleChildScrollView(
+      controller: controller,
+      scrollDirection: _v(data['direction'], build) == 'horizontal'
+          ? Axis.horizontal
+          : Axis.vertical,
+      child: data['child'] == null
+          ? null
+          : buildWidget(build.nested(_v(data['child'], build))),
+    );
+  }
+
+  static Widget buildInkWell(SdrBuildWidgetData build) {
+    final data = build.data;
+    return InkWell(
+      child: data['child'] == null
+          ? null
+          : buildWidget(build.nested(_v(data['child'], build))),
+      onTap: () => executeActions(_v(data['@click'], build), build),
+    );
+  }
+
+  static Widget buildWrap(SdrBuildWidgetData build) {
+    final data = build.data;
+    final List<dynamic> children = _v(data['children'], build);
+    return Wrap(
+      children: children.map((e) => buildWidget(build.nested(e))).toList(),
+      direction: _v(data['direction'], build) == 'vertical'
+          ? Axis.vertical
+          : Axis.horizontal,
+    );
+  }
+
+  static Widget buildExpanded(SdrBuildWidgetData build) {
+    final data = build.data;
+    return Expanded(
+      child: buildWidget(build.nested(_v(data['child'], build))),
+      flex: _v(data['flex'], build) ?? 1,
+    );
+  }
+
+  static Widget buildSdrArea(SdrBuildWidgetData build) {
+    // return SdrArea(
+    //   areaId: _v(build.data['area_id'], build),
+    //   parentId: build.areaId,
+    // );
+    return Obx(
+      () => sdrAreaWidget[_v(build.data['area_id'], build)] ?? const SizedBox(),
+    );
+  }
+
+  static Widget buildCenter(SdrBuildWidgetData build) {
+    return Center(
+      child: buildWidget(build.nested(_v(build.data['child'], build))),
+    );
+  }
+
+  static Widget buildVerticalDivider(SdrBuildWidgetData build) {
+    return VerticalDivider(
+      width: _v(build.data['width'], build),
+      color: build.data['color'] == null
+          ? null
+          : HexColor.fromHex(
+              _v(build.data['color'], build),
+            ),
+    );
+  }
+
+  static Widget buildDivider(SdrBuildWidgetData build) {
+    return Divider(
+      height: _v(build.data['height'], build),
+      color: build.data['color'] == null
+          ? null
+          : HexColor.fromHex(
+              _v(build.data['color'], build),
+            ),
+    );
+  }
+
+  static T? enumFromString<T>(Iterable<T> values, String? value) {
+    if (value == null) {
+      return null;
+    }
+    return values
+        .firstWhere((type) => type.toString().split(".").last == value);
+  }
+
+  static Widget buildImage(SdrBuildWidgetData build) {
+    final data = build.data;
+    final String source = _v(data['source'], build) ?? 'file';
+
+    switch (source) {
+      case 'file':
+        return Image.file(
+          File(_v(data['value'], build)),
+          width: _v(data['width'], build),
+          height: _v(data['height'], build),
+          fit: enumFromString(BoxFit.values, _v(data['fit'], build)),
+        );
+      case 'network':
+        return Image.network(
+          _v(data['value'], build),
+          width: _v(data['width'], build),
+          height: _v(data['height'], build),
+          fit: enumFromString(BoxFit.values, _v(data['fit'], build)),
+        );
+      case 'asset':
+        return Image.asset(
+          _v(data['value'], build),
+          width: _v(data['width'], build),
+          height: _v(data['height'], build),
+          fit: enumFromString(BoxFit.values, _v(data['fit'], build)),
+        );
+      default:
+        return const SizedBox();
+    }
+  }
+
+  static Widget buildAudioPlayer(SdrBuildWidgetData build) {
+    final data = build.data;
+    return AudioPlayerWidget(
+      key: ValueKey(_v(data['path'], build)),
+      path: _v(data['path'], build),
     );
   }
 }

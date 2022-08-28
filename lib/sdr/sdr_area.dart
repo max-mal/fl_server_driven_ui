@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class SdrArea extends StatefulWidget {
-  final Map<String, dynamic> data;
+  final Map<String, dynamic>? data;
   final String areaId;
+  final String? parentId;
   const SdrArea({
     Key? key,
     required this.areaId,
-    required this.data,
+    this.data,
+    this.parentId,
   }) : super(key: key);
 
   @override
@@ -29,12 +31,19 @@ class _SdrAreaState extends State<SdrArea> {
   void initState() {
     super.initState();
     sdrAreaRxVariables[widget.areaId] = {};
-    sdrAreaWidget[widget.areaId] = buildWidget(
+    // ignore: invalid_use_of_protected_member
+    sdrAreaWidget.value[widget.areaId] = buildWidget(
       SdrBuildWidgetData(
         areaId: widget.areaId,
-        data: widget.data,
+        data: widget.data ?? {},
         variables: {},
       ),
     );
+
+    if (widget.parentId != null) {
+      sdrAreaWidget.listen((_) {
+        sdrAreaWidget.refresh();
+      });
+    }
   }
 }

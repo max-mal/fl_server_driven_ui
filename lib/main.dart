@@ -1,11 +1,24 @@
+import 'package:cshell/api.dart';
+import 'package:cshell/app.dart';
 import 'package:cshell/sdr/sdr_area.dart';
+import 'package:cshell/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 void main() {
+  Get.put(ApiService(), permanent: true);
   runApp(GetMaterialApp(
     title: 'aShell',
-    home: Scaffold(
+    home: AppWidget(),
+    darkTheme: AppThemes.darkTheme,
+    theme: AppThemes.lightTheme,
+    themeMode: ThemeMode.dark,
+  ));
+}
+
+openTestPage() {
+  Get.to(
+    () => Scaffold(
       body: Column(
         children: const [
           SdrArea(
@@ -128,5 +141,5 @@ void main() {
         ],
       ),
     ),
-  ));
+  );
 }
