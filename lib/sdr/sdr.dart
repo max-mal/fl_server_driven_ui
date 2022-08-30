@@ -22,6 +22,7 @@ Map<String, Widget Function(SdrBuildWidgetData)> sdrBuilders = {
   "divider": SdrBuilders.buildDivider,
   "image": SdrBuilders.buildImage,
   "audio_player": SdrBuilders.buildAudioPlayer,
+  "list_builder": SdrBuilders.buildListBuilder,
 };
 
 Map<String, Function(Map<String, dynamic>, SdrBuildWidgetData)> sdrActions = {
@@ -44,6 +45,12 @@ Widget buildWidget(SdrBuildWidgetData build) {
   if (type.startsWith('\$')) {
     isReactive = true;
     type = type.substring(1);
+  }
+
+  final templateData = sdrTemplatesData[type];
+  if (templateData != null) {
+    build.data = templateData;
+    return buildWidget(build);
   }
 
   final builderFunction = sdrBuilders[type];
@@ -84,6 +91,12 @@ executeActions(dynamic actions, SdrBuildWidgetData build) {
 }
 
 sdrUpdate(Map<String, dynamic> updateData) {
+  Map<String, dynamic> templates = updateData['templates'];
+
+  for (String name in templates.keys) {
+    sdrTemplatesData[name] = templates[name];
+  }
+
   Map<String, dynamic> areas = updateData['areas'];
 
   for (String areaId in areas.keys) {
@@ -105,6 +118,7 @@ sdrUpdate(Map<String, dynamic> updateData) {
 RxMap<String, Widget> sdrAreaWidget = RxMap<String, Widget>();
 Map<String, SdrBuildWidgetData> sdrAreaData = {};
 Map<String, Map<String, Rx<dynamic>>> sdrAreaRxVariables = {};
+Map<String, Map<String, dynamic>> sdrTemplatesData = {};
 
 class SdrBuildWidgetData {
   Map<String, dynamic> data;

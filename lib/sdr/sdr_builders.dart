@@ -13,13 +13,54 @@ class SdrBuilders {
       return null;
     }
 
+    String valueString = value.toString();
+
+    if (valueString.startsWith('\$') && valueString.contains('.')) {
+      List<String> parts = valueString.split('.');
+      dynamic retValue;
+      for (String part in parts) {
+        if (part.isEmpty) {
+          retValue = retValue.toString() + '.';
+          continue;
+        }
+        dynamic cValue = _v(part, build);
+        if (retValue == null) {
+          retValue = cValue;
+        } else {
+          if (retValue is List || retValue is String) {
+            retValue = retValue[int.parse(cValue.toString())];
+          }
+
+          if (retValue is Map) {
+            retValue = retValue[cValue.toString()];
+          }
+        }
+      }
+
+      return retValue;
+    }
+
     if (value.toString().startsWith('\$\$')) {
-      return sdrAreaRxVariables[build.areaId]?[value.toString().substring(2)]
-          ?.value;
+      String key = value.toString().substring(2);
+      if (sdrAreaRxVariables[build.areaId]?.containsKey(key) == true) {
+        return sdrAreaRxVariables[build.areaId]?[key]?.value;
+      }
     }
 
     if (value.toString().startsWith('\$')) {
-      return build.variables[value.toString().substring(1)];
+      String key = value.toString().substring(1);
+      if (build.variables.containsKey(key)) {
+        return build.variables[key];
+      }
+    }
+
+    if (value is String && value.contains('\$')) {
+      final regEx = RegExp(r'(\$[\w.]*)');
+      final matches = regEx.allMatches(value);
+      for (RegExpMatch match in matches) {
+        final group = match.group(1);
+        value = value.replaceAll(group, _v(group, build).toString());
+      }
     }
     return value;
   }
@@ -387,6 +428,26 @@ class SdrBuilders {
     return AudioPlayerWidget(
       key: ValueKey(_v(data['path'], build)),
       path: _v(data['path'], build),
+    );
+  }
+
+  static Widget buildListBuilder(SdrBuildWidgetData build) {
+    final data = build.data;
+    List<dynamic>? items = _v(data['items'], build);
+    return ListView.builder(
+      controller: ScrollController(),
+      scrollDirection: _v(data['direction'], build) == 'horizontal'
+          ? Axis.horizontal
+          : Axis.vertical,
+      itemBuilder: (context, index) {
+        final nested = build.nested(_v(data['child'], build));
+        nested.variables['index'] = index;
+        if (items != null) {
+          nested.variables['item'] = items[index];
+        }
+        return buildWidget(nested);
+      },
+      itemCount: items != null ? items.length : _v(data['count'], build),
     );
   }
 }

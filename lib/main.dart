@@ -1,5 +1,6 @@
 import 'package:cshell/api.dart';
 import 'package:cshell/app.dart';
+import 'package:cshell/sdr/sdr.dart';
 import 'package:cshell/sdr/sdr_area.dart';
 import 'package:cshell/theme.dart';
 import 'package:flutter/material.dart';
@@ -16,12 +17,67 @@ void main() {
   ));
 }
 
-openTestPage() {
-  Get.to(
-    () => Scaffold(
+class TestAreaWidget extends StatefulWidget {
+  const TestAreaWidget({Key? key}) : super(key: key);
+
+  @override
+  State<TestAreaWidget> createState() => _TestAreaWidgetState();
+}
+
+class _TestAreaWidgetState extends State<TestAreaWidget> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  makeUpdate() {
+    sdrUpdate({
+      'templates': {
+        'item': {
+          'type': 'padding',
+          'padding': 10,
+          'child': {
+            'type': 'text',
+            'text': '\$text',
+          },
+        }
+      },
+      'areas': {
+        'updatable': {
+          'type': 'column',
+          'children': [
+            {
+              '\$': {
+                'text': 'Item 1',
+              },
+              'type': 'item',
+            },
+            {
+              '\$': {
+                'text': 'Item 2',
+              },
+              'type': 'item',
+            },
+          ],
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Test Area'),
+      ),
       body: Column(
-        children: const [
-          SdrArea(
+        children: [
+          TextButton(
+            onPressed: () => makeUpdate(),
+            child: const Text('Make Update'),
+          ),
+          const SdrArea(areaId: 'updatable'),
+          const SdrArea(
             areaId: '1',
             data: {
               'type': 'padding',
@@ -33,7 +89,7 @@ openTestPage() {
               },
             },
           ),
-          SdrArea(
+          const SdrArea(
             areaId: '2',
             data: {
               'type': 'container',
@@ -100,7 +156,7 @@ openTestPage() {
               },
             },
           ),
-          SdrArea(
+          const SdrArea(
             areaId: '3',
             data: {
               '\$\$': {
@@ -138,8 +194,81 @@ openTestPage() {
               ],
             },
           ),
+          const SdrArea(
+            areaId: '4',
+            data: {
+              '\$': {
+                'items': [
+                  'Line 0',
+                  'Line 1',
+                  'Line 2',
+                ],
+                'index': 2,
+              },
+              'type': 'column',
+              'children': [
+                {
+                  'type': 'text',
+                  'text': '\$items.1',
+                },
+                {
+                  'type': 'text',
+                  'text': '\$items.\$index',
+                },
+              ],
+            },
+          ),
+          const Expanded(
+            child: SdrArea(
+              areaId: '5',
+              data: {
+                'type': 'list_builder',
+                'child': {
+                  'type': 'padding',
+                  'padding': 10,
+                  'child': {
+                    'type': 'text',
+                    'text': '\$index',
+                  },
+                },
+              },
+            ),
+          ),
+          const Expanded(
+            child: SdrArea(
+              areaId: '6',
+              data: {
+                '\$': {
+                  'articles': [
+                    {'author': 'John Doe', 'title': 'Title 1'},
+                    {'author': 'Mari Doe', 'title': 'Title 2'},
+                    {'author': 'John Doe', 'title': 'Title 3'},
+                  ],
+                },
+                'type': 'list_builder',
+                'items': '\$articles',
+                'child': {
+                  'type': 'padding',
+                  'padding': 10,
+                  'child': {
+                    'type': 'column',
+                    'children': [
+                      {
+                        'type': 'text',
+                        'text': 'Author name: \$item.author. Index: \$index',
+                      },
+                      {
+                        'type': 'text',
+                        'text': '\$item.title',
+                      },
+                    ],
+                  },
+                },
+              },
+            ),
+          ),
         ],
       ),
-    ),
-  );
+    );
+  }
 }
