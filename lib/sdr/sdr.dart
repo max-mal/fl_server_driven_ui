@@ -91,7 +91,7 @@ executeActions(dynamic actions, SdrBuildWidgetData build) {
 }
 
 sdrUpdate(Map<String, dynamic> updateData) {
-  Map<String, dynamic> templates = updateData['templates'];
+  Map<String, dynamic> templates = updateData['templates'] ?? {};
 
   for (String name in templates.keys) {
     sdrTemplatesData[name] = templates[name];
