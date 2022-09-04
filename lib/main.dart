@@ -38,7 +38,9 @@ class _TestAreaWidgetState extends State<TestAreaWidget> {
           'padding': 10,
           'child': {
             'type': 'text',
-            'text': '\$text',
+            'text': {
+              '_v': '\$text',
+            },
           },
         }
       },
@@ -129,11 +131,15 @@ class _TestAreaWidgetState extends State<TestAreaWidget> {
                   },
                   {
                     'type': 'text',
-                    'text': '\$4_line',
+                    'text': {
+                      '_v': '\$4_line',
+                    },
                   },
                   {
                     'type': 'text',
-                    'text': '\$\$rv',
+                    'text': {
+                      '_v': '\$\$rv',
+                    },
                   },
                   {
                     'type': 'button',
@@ -167,7 +173,9 @@ class _TestAreaWidgetState extends State<TestAreaWidget> {
               'children': [
                 {
                   'type': '\$text',
-                  'text': '\$\$counter',
+                  'text': {
+                    '_v': '\$\$counter',
+                  },
                 },
                 {
                   'type': 'button',
@@ -209,11 +217,15 @@ class _TestAreaWidgetState extends State<TestAreaWidget> {
               'children': [
                 {
                   'type': 'text',
-                  'text': '\$items.1',
+                  'text': {
+                    '_v': '\$items.1',
+                  },
                 },
                 {
                   'type': 'text',
-                  'text': '\$items.\$index',
+                  'text': {
+                    '_v': '\$items.\$index',
+                  },
                 },
               ],
             },
@@ -228,7 +240,9 @@ class _TestAreaWidgetState extends State<TestAreaWidget> {
                   'padding': 10,
                   'child': {
                     'type': 'text',
-                    'text': '\$index',
+                    'text': {
+                      '_v': '\$index',
+                    },
                   },
                 },
               },
@@ -246,7 +260,9 @@ class _TestAreaWidgetState extends State<TestAreaWidget> {
                   ],
                 },
                 'type': 'list_builder',
-                'items': '\$articles',
+                'items': {
+                  '_v': '\$articles',
+                },
                 'child': {
                   'type': 'padding',
                   'padding': 10,
@@ -255,11 +271,16 @@ class _TestAreaWidgetState extends State<TestAreaWidget> {
                     'children': [
                       {
                         'type': 'text',
-                        'text': 'Author name: \$item.author. Index: \$index',
+                        'text': {
+                          '_v': 'interpolate',
+                          'value': 'Author name: \$item.author. Index: \$index',
+                        },
                       },
                       {
                         'type': 'text',
-                        'text': '\$item.title',
+                        'text': {
+                          '_v': '\$item.title',
+                        },
                       },
                     ],
                   },

@@ -23,6 +23,11 @@ Map<String, Widget Function(SdrBuildWidgetData)> sdrBuilders = {
   "image": SdrBuilders.buildImage,
   "audio_player": SdrBuilders.buildAudioPlayer,
   "list_builder": SdrBuilders.buildListBuilder,
+  "sized_box": SdrBuilders.buildSizedBox,
+  "alert_dialog": SdrBuilders.buildAlertDialog,
+  "text_field": SdrBuilders.buildTextField,
+  "icon": SdrBuilders.buildIcon,
+  "dropdown_button": SdrBuilders.buildDropDownButton,
 };
 
 Map<String, Function(Map<String, dynamic>, SdrBuildWidgetData)> sdrActions = {
@@ -30,6 +35,10 @@ Map<String, Function(Map<String, dynamic>, SdrBuildWidgetData)> sdrActions = {
   "increment_variable": SdrActions.incrementVariable,
   "decrement_variable": SdrActions.decrementVariable,
   "sdr_request": SdrActions.sdrRequest,
+  "open_dialog": SdrActions.openDialog,
+  "open": SdrActions.open,
+  "back": SdrActions.back,
+  "close_dialogs": SdrActions.closeDialogs,
 };
 
 Widget buildWidget(SdrBuildWidgetData build) {
@@ -76,7 +85,7 @@ executeActions(dynamic actions, SdrBuildWidgetData build) {
   if (actions is Map<String, dynamic>) {
     actionsList = [actions];
   } else {
-    actionsList = actions;
+    actionsList = List<Map<String, dynamic>>.from(actions);
   }
 
   for (Map<String, dynamic> action in actionsList) {
@@ -86,7 +95,13 @@ executeActions(dynamic actions, SdrBuildWidgetData build) {
       print(action);
       continue;
     }
-    actionFunction(action, build);
+    print('Launching action ${action['_']}');
+    final _action = Map<String, dynamic>.from(action);
+    for (String key in _action.keys) {
+      _action[key] = sdrGetVariable(_action[key], build);
+    }
+    print(_action);
+    actionFunction(_action, build);
   }
 }
 
@@ -97,7 +112,7 @@ sdrUpdate(Map<String, dynamic> updateData) {
     sdrTemplatesData[name] = templates[name];
   }
 
-  Map<String, dynamic> areas = updateData['areas'];
+  Map<String, dynamic> areas = updateData['areas'] ?? {};
 
   for (String areaId in areas.keys) {
     sdrAreaData[areaId] = SdrBuildWidgetData(
@@ -107,18 +122,106 @@ sdrUpdate(Map<String, dynamic> updateData) {
     );
     sdrAreaWidget[areaId] = buildWidget(sdrAreaData[areaId]!);
   }
-  // sdrAreaWidget.refresh();
 
-  // for (String key in sdrAreaWidget.keys) {
-  //   sdrAreaWidget[key] = buildWidget(sdrAreaData[key]!);
-  // }
-  // print('sdrUpdate completed');
+  List<dynamic> actions = updateData['actions'] ?? [];
+  executeActions(
+    actions,
+    SdrBuildWidgetData(
+      areaId: '_',
+      variables: {},
+      data: {},
+    ),
+  );
 }
 
 RxMap<String, Widget> sdrAreaWidget = RxMap<String, Widget>();
 Map<String, SdrBuildWidgetData> sdrAreaData = {};
 Map<String, Map<String, Rx<dynamic>>> sdrAreaRxVariables = {};
 Map<String, Map<String, dynamic>> sdrTemplatesData = {};
+
+_sdrGetVariable(dynamic value, SdrBuildWidgetData build,
+    {bool isInner = false}) {
+  if (value.toString().startsWith('\$\$')) {
+    String key = value.toString().substring(2);
+    if (sdrAreaRxVariables[build.areaId]?.containsKey(key) == true) {
+      return sdrAreaRxVariables[build.areaId]?[key]?.value;
+    }
+  }
+
+  if (value.toString().startsWith('\$')) {
+    String key = value.toString().substring(1);
+    if (build.variables.containsKey(key)) {
+      return build.variables[key];
+    }
+  }
+
+  String valueString = value.toString();
+
+  if (!isInner && valueString.startsWith('\$') && valueString.contains('.')) {
+    return _sdrGetInnerVariable(value, build);
+  }
+
+  return value;
+}
+
+_sdrGetInnerVariable(dynamic value, SdrBuildWidgetData build) {
+  String valueString = value.toString();
+
+  List<String> parts = valueString.split('.');
+  dynamic retValue;
+  for (String part in parts) {
+    if (part.isEmpty) {
+      retValue = retValue.toString() + '.';
+      continue;
+    }
+    dynamic cValue = _sdrGetVariable(part, build, isInner: true);
+    if (retValue == null) {
+      retValue = cValue;
+    } else {
+      if (retValue is List || retValue is String) {
+        retValue = retValue[int.parse(cValue.toString())];
+      }
+
+      if (retValue is Map) {
+        retValue = retValue[cValue.toString()];
+      }
+    }
+  }
+
+  return retValue;
+}
+
+_sdrGetVariableInterpolate(dynamic value, SdrBuildWidgetData build) {
+  if (value is String && value.contains('\$')) {
+    final regEx = RegExp(r'(\$[\$\w.]*)');
+    final matches = regEx.allMatches(value);
+    for (RegExpMatch match in matches) {
+      final group = match.group(1);
+      value = value.replaceAll(group, _sdrGetVariable(group, build).toString());
+    }
+  }
+  return value;
+}
+
+sdrGetVariable(dynamic value, SdrBuildWidgetData build) {
+  if (value == null) {
+    return null;
+  }
+
+  if (value is Map && value['_v'] == 'raw') {
+    return value['value'];
+  }
+
+  if (value is Map && value['_v'] == 'interpolate') {
+    return _sdrGetVariableInterpolate(value['value'], build);
+  }
+
+  if (value is Map && value['_v'] != null) {
+    return _sdrGetVariable(value['_v'], build);
+  }
+
+  return value;
+}
 
 class SdrBuildWidgetData {
   Map<String, dynamic> data;
@@ -145,7 +248,7 @@ class SdrBuildWidgetData {
     return SdrBuildWidgetData(
       areaId: areaId,
       data: nestedData,
-      variables: variables,
+      variables: Map<String, dynamic>.from(variables),
     );
   }
 }

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AppWidget extends StatefulWidget {
+  const AppWidget({Key? key}) : super(key: key);
+
   @override
   State<AppWidget> createState() => _AppWidgetState();
 }
@@ -14,19 +16,37 @@ class _AppWidgetState extends State<AppWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          const SdrArea(areaId: 'menu'),
-          const Expanded(
-            child: SdrArea(
-              areaId: 'main',
+      body: Obx(
+        () => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SdrArea(areaId: 'menu'),
+            controller.error.value != null
+                ? Expanded(
+                    child: Center(
+                      child: Text(controller.error.value ?? ''),
+                    ),
+                  )
+                : const Expanded(
+                    child: SdrArea(
+                      areaId: 'main',
+                    ),
+                  ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () => controller.initializeMenu(),
+                  icon: const Icon(Icons.refresh),
+                ),
+                IconButton(
+                  onPressed: () => Get.to(() => const TestAreaWidget()),
+                  icon: const Icon(Icons.bug_report),
+                ),
+              ],
             ),
-          ),
-          TextButton(
-            onPressed: () => Get.to(() => const TestAreaWidget()),
-            child: const Text('Test Area'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -4,16 +4,24 @@ import 'package:get/get.dart';
 
 class AppController extends GetxController {
   final api = Get.find<ApiService>();
+  RxnString error = RxnString();
 
   @override
   void onReady() {
-    _initializeMenu();
+    initializeMenu();
     super.onReady();
   }
 
-  _initializeMenu() async {
-    final menuUpdate = await api.getMenus();
-    sdrUpdate(menuUpdate);
+  initializeMenu() async {
+    try {
+      error.value = null;
+      error.refresh();
+      final menuUpdate = await api.getMenus();
+      sdrUpdate(menuUpdate);
+    } catch (e) {
+      error(e.toString());
+      rethrow;
+    }
   }
 
   doSdrRequest(Map<String, dynamic> data) async {
@@ -24,6 +32,7 @@ class AppController extends GetxController {
       sdrUpdate(response);
     } catch (e) {
       Get.snackbar('Error', 'Failed to perform request');
+      rethrow;
     }
   }
 }

@@ -9,60 +9,7 @@ import 'package:get/get.dart';
 
 class SdrBuilders {
   static _v(dynamic value, SdrBuildWidgetData build) {
-    if (value == null) {
-      return null;
-    }
-
-    String valueString = value.toString();
-
-    if (valueString.startsWith('\$') && valueString.contains('.')) {
-      List<String> parts = valueString.split('.');
-      dynamic retValue;
-      for (String part in parts) {
-        if (part.isEmpty) {
-          retValue = retValue.toString() + '.';
-          continue;
-        }
-        dynamic cValue = _v(part, build);
-        if (retValue == null) {
-          retValue = cValue;
-        } else {
-          if (retValue is List || retValue is String) {
-            retValue = retValue[int.parse(cValue.toString())];
-          }
-
-          if (retValue is Map) {
-            retValue = retValue[cValue.toString()];
-          }
-        }
-      }
-
-      return retValue;
-    }
-
-    if (value.toString().startsWith('\$\$')) {
-      String key = value.toString().substring(2);
-      if (sdrAreaRxVariables[build.areaId]?.containsKey(key) == true) {
-        return sdrAreaRxVariables[build.areaId]?[key]?.value;
-      }
-    }
-
-    if (value.toString().startsWith('\$')) {
-      String key = value.toString().substring(1);
-      if (build.variables.containsKey(key)) {
-        return build.variables[key];
-      }
-    }
-
-    if (value is String && value.contains('\$')) {
-      final regEx = RegExp(r'(\$[\w.]*)');
-      final matches = regEx.allMatches(value);
-      for (RegExpMatch match in matches) {
-        final group = match.group(1);
-        value = value.replaceAll(group, _v(group, build).toString());
-      }
-    }
-    return value;
+    return sdrGetVariable(value, build);
   }
 
   static TextStyle? _getTextStyle(
@@ -448,6 +395,133 @@ class SdrBuilders {
         return buildWidget(nested);
       },
       itemCount: items != null ? items.length : _v(data['count'], build),
+    );
+  }
+
+  static Widget buildSizedBox(SdrBuildWidgetData build) {
+    final data = build.data;
+    return SizedBox(
+      child: data['child'] == null
+          ? null
+          : buildWidget(build.nested(_v(data['child'], build))),
+      width: _v(data['width'], build),
+      height: _v(data['height'], build),
+    );
+  }
+
+  static Widget buildAlertDialog(SdrBuildWidgetData build) {
+    final data = build.data;
+    final List<dynamic>? actions = _v(data['actions'], build);
+    return AlertDialog(
+      title: data['title'] == null
+          ? null
+          : buildWidget(build.nested(_v(data['title'], build))),
+      content: data['child'] == null
+          ? null
+          : buildWidget(build.nested(_v(data['child'], build))),
+      actions: actions == null
+          ? [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('OK'),
+              )
+            ]
+          : actions.map((e) => buildWidget(build.nested(e))).toList(),
+    );
+  }
+
+  static Widget buildTextField(SdrBuildWidgetData build) {
+    final data = build.data;
+    final controller = TextEditingController(text: _v(data['value'], build));
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration.collapsed(
+        hintText: _v(data['hint'], build),
+        hintStyle: _getTextStyle(data['hint_style'], build),
+      ),
+      onChanged: data['@changed'] == null
+          ? null
+          : (value) {
+              final _build = build.nested(build.data);
+              _build.variables['value'] = value;
+              executeActions(_v(data['@changed'], _build), _build);
+            },
+      onSubmitted: data['@submit'] == null
+          ? null
+          : (value) {
+              final _build = build.nested(build.data);
+              _build.variables['value'] = value;
+              executeActions(_v(data['@submit'], _build), _build);
+            },
+      onEditingComplete: data['@editing_complete'] == null
+          ? null
+          : () => executeActions(_v(data['@editing_complete'], build), build),
+      keyboardType: enumFromString(
+        TextInputType.values,
+        _v(data['keyboard_type'], build),
+      ),
+      obscureText: _v(data['obscure'], build) == true,
+      style: _getTextStyle(data['text_style'], build),
+      enabled:
+          data['enabled'] == null ? null : _v(data['enabled'], build) == true,
+      maxLines: data['max_lines'] == null ? null : _v(data['max_lines'], build),
+      minLines: data['min_lines'] == null ? null : _v(data['min_lines'], build),
+    );
+  }
+
+  static Widget buildIcon(SdrBuildWidgetData build) {
+    final data = build.data;
+    return Icon(
+      _getIconDataFromString(_v(data['icon'], build)),
+      color: data['color'] == null
+          ? null
+          : HexColor.fromHex(_v(data['color'], build)),
+      size: _v(data['size'], build),
+    );
+  }
+
+  static IconData _getIconDataFromString(String icon) {
+    // TODO add more icons
+    switch (icon) {
+      case "search":
+        return Icons.search;
+      case "error":
+        return Icons.search;
+      case "arrow_upward":
+        return Icons.arrow_upward;
+      case "arrow_downward":
+        return Icons.arrow_downward;
+      default:
+        return Icons.error;
+    }
+  }
+
+  static Widget buildDropDownButton(SdrBuildWidgetData build) {
+    final data = build.data;
+    Map<dynamic, String> options = Map<dynamic, String>.from(
+      _v(data['options'], build),
+    );
+
+    return DropdownButton(
+      value: _v(data['value'], build),
+      icon: data['icon'] == null
+          ? null
+          : buildWidget(build.nested(_v(data['icon'], build))),
+      elevation: _v(data['elevation'], build) ?? 8,
+      style: _getTextStyle(_v(data['text_style'], build), build),
+      items: options.keys
+          .map((key) => DropdownMenuItem(
+                value: key,
+                child: Text(options[key] ?? ''),
+              ))
+          .toList(),
+      onChanged: data['@changed'] == null
+          ? null
+          : (value) {
+              final _build = build.nested(build.data);
+              _build.variables['value'] = value;
+              executeActions(_v(data['@changed'], _build), _build);
+            },
     );
   }
 }

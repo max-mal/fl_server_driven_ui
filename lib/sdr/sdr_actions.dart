@@ -27,4 +27,20 @@ class SdrActions {
     final controller = Get.find<AppController>();
     controller.doSdrRequest(args);
   }
+
+  static openDialog(Map<String, dynamic> args, SdrBuildWidgetData build) {
+    Get.dialog(buildWidget(build.nested(args['child'])));
+  }
+
+  static back(Map<String, dynamic> args, SdrBuildWidgetData build) {
+    Get.back();
+  }
+
+  static closeDialogs(Map<String, dynamic> args, SdrBuildWidgetData build) {
+    Get.until((route) => !Get.isDialogOpen!);
+  }
+
+  static open(Map<String, dynamic> args, SdrBuildWidgetData build) {
+    Get.to(() => buildWidget(build.nested(args['child'])));
+  }
 }

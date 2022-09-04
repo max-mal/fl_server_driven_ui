@@ -1,0 +1,29 @@
+name: cshell
+version: 0.1.0
+summary: cshell
+description: cshell App that does everything!
+
+confinement: strict
+base: core18
+grade: stable
+
+slots:
+  cshell: # adjust accordingly to your app name
+    interface: dbus
+    bus: session
+    name: com.example.cshell # adjust accordingly to your app name and
+
+apps:
+  cshell:
+    command: cshell
+    extensions: [flutter-stable] # Where "master" defines which Flutter channel to use for the build
+    plugs:
+    - network
+    - home
+    slots:
+      - cshell
+parts:
+  cshell:
+    source: .
+    plugin: flutter
+    flutter-target: lib/main.dart # The main entry-point file of the application
