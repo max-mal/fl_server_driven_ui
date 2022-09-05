@@ -28,6 +28,7 @@ Map<String, Widget Function(SdrBuildWidgetData)> sdrBuilders = {
   "text_field": SdrBuilders.buildTextField,
   "icon": SdrBuilders.buildIcon,
   "dropdown_button": SdrBuilders.buildDropDownButton,
+  "boolean": SdrBuilders.buildBoolean,
 };
 
 Map<String, Function(Map<String, dynamic>, SdrBuildWidgetData)> sdrActions = {
@@ -179,11 +180,17 @@ _sdrGetInnerVariable(dynamic value, SdrBuildWidgetData build) {
       retValue = cValue;
     } else {
       if (retValue is List || retValue is String) {
+        final index = int.parse(cValue.toString());
+        if (index >= retValue.length) {
+          return null;
+        }
         retValue = retValue[int.parse(cValue.toString())];
+        continue;
       }
 
       if (retValue is Map) {
         retValue = retValue[cValue.toString()];
+        continue;
       }
     }
   }

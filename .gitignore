@@ -1,4 +1,7 @@
+AppDir
+*.AppImage
 *.snap
+appimage-build
 # Miscellaneous
 *.class
 *.log

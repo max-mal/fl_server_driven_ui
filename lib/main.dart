@@ -8,6 +8,10 @@ import 'package:get/get.dart';
 
 void main() {
   Get.put(ApiService(), permanent: true);
+
+  ErrorWidget.builder = (details) {
+    return const Icon(Icons.error);
+  };
   runApp(GetMaterialApp(
     title: 'aShell',
     home: AppWidget(),

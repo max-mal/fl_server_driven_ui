@@ -5,6 +5,7 @@ import 'package:cshell/sdr/sdr_area.dart';
 import 'package:cshell/widgets/audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:cshell/extensions/color.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 class SdrBuilders {
@@ -339,14 +340,63 @@ class SdrBuilders {
         .firstWhere((type) => type.toString().split(".").last == value);
   }
 
+  static Widget buildSvgImage(SdrBuildWidgetData build) {
+    final data = build.data;
+    final String source = _v(data['source'], build) ?? 'file';
+
+    try {
+      switch (source) {
+        case 'file':
+          return SvgPicture.file(
+            File(_v(data['value'], build)),
+            key: ValueKey(_v(data['value'], build)),
+            width: _v(data['width'], build),
+            height: _v(data['height'], build),
+            fit: enumFromString(BoxFit.values, _v(data['fit'], build)) ??
+                BoxFit.contain,
+          );
+        case 'network':
+          return SvgPicture.network(
+            _v(data['value'], build),
+            width: _v(data['width'], build),
+            height: _v(data['height'], build),
+            fit: enumFromString(BoxFit.values, _v(data['fit'], build)) ??
+                BoxFit.contain,
+          );
+        case 'asset':
+          return SvgPicture.asset(
+            _v(data['value'], build),
+            width: _v(data['width'], build),
+            height: _v(data['height'], build),
+            fit: enumFromString(BoxFit.values, _v(data['fit'], build)) ??
+                BoxFit.contain,
+          );
+        default:
+          return const SizedBox();
+      }
+    } catch (e) {
+      return const Icon(Icons.error);
+    }
+  }
+
   static Widget buildImage(SdrBuildWidgetData build) {
     final data = build.data;
     final String source = _v(data['source'], build) ?? 'file';
 
+    String? value = _v(data['value'], build);
+
+    if (value == null) {
+      return const SizedBox();
+    }
+
+    if (value.endsWith('.svg')) {
+      return buildSvgImage(build);
+    }
+
     switch (source) {
       case 'file':
         return Image.file(
-          File(_v(data['value'], build)),
+          File(_v(data['value'], build) ?? ''),
           width: _v(data['width'], build),
           height: _v(data['height'], build),
           fit: enumFromString(BoxFit.values, _v(data['fit'], build)),
@@ -523,5 +573,20 @@ class SdrBuilders {
               executeActions(_v(data['@changed'], _build), _build);
             },
     );
+  }
+
+  static Widget buildBoolean(SdrBuildWidgetData build) {
+    final data = build.data;
+    final value = _v(data['value'], build);
+
+    if (value == null || value == false || value == 0) {
+      return data['false'] == null
+          ? const SizedBox()
+          : buildWidget(build.nested(_v(data['false'], build)));
+    }
+
+    return data['true'] == null
+        ? const SizedBox()
+        : buildWidget(build.nested(_v(data['true'], build)));
   }
 }

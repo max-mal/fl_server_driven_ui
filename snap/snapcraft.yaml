@@ -3,7 +3,7 @@ version: 0.1.0
 summary: cshell
 description: cshell App that does everything!
 
-confinement: strict
+confinement: devmode
 base: core18
 grade: stable
 
@@ -13,6 +13,12 @@ slots:
     bus: session
     name: com.example.cshell # adjust accordingly to your app name and
 
+plugs:
+  system-cshell:
+    interface: system-files
+    read:
+      - /usr/share
+
 apps:
   cshell:
     command: cshell
@@ -20,6 +26,9 @@ apps:
     plugs:
     - network
     - home
+    - system-cshell
+    - desktop
+    - desktop-legacy
     slots:
       - cshell
 parts:

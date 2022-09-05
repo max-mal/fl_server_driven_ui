@@ -37,6 +37,7 @@ dependencies:
   get: ^4.6.5
   http: ^0.13.5
   just_audio: any
+  flutter_svg: ^1.0.3
   # just_audio_mpv: any
 
 dev_dependencies:
