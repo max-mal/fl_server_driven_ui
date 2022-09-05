@@ -2,6 +2,7 @@ library sdr;
 
 import 'package:cshell/sdr/sdr_actions.dart';
 import 'package:cshell/sdr/sdr_builders.dart';
+import 'package:cshell/sdr/sdr_transformers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -40,6 +41,29 @@ Map<String, Function(Map<String, dynamic>, SdrBuildWidgetData)> sdrActions = {
   "open": SdrActions.open,
   "back": SdrActions.back,
   "close_dialogs": SdrActions.closeDialogs,
+};
+
+Map<String, Function(Map<String, dynamic>, SdrBuildWidgetData)>
+    sdrTransformers = {
+  "add": SdrTransformers.addTransformer,
+  "substract": SdrTransformers.substractTransformer,
+  "and": SdrTransformers.andTransformer,
+  "or": SdrTransformers.orTransformer,
+  "not": SdrTransformers.notTransformer,
+  "eq": SdrTransformers.eqTransformer,
+  "gt": SdrTransformers.gtTransformer,
+  "gte": SdrTransformers.gteTransformer,
+  "lt": SdrTransformers.ltTransformer,
+  "lte": SdrTransformers.lteTransformer,
+  "join": SdrTransformers.joinTransformer,
+  "split": SdrTransformers.splitTransformer,
+  "replace": SdrTransformers.replaceTransformer,
+  "contains": SdrTransformers.containsTransformer,
+  "lowercase": SdrTransformers.lowercaseTransformer,
+  "uppercase": SdrTransformers.uppercaseTransformer,
+  "trim": SdrTransformers.trimTransformer,
+  "filter": SdrTransformers.filterTransformer,
+  "pipeline": SdrTransformers.pipelineTransformer,
 };
 
 Widget buildWidget(SdrBuildWidgetData build) {
@@ -213,6 +237,18 @@ _sdrGetVariableInterpolate(dynamic value, SdrBuildWidgetData build) {
 sdrGetVariable(dynamic value, SdrBuildWidgetData build) {
   if (value == null) {
     return null;
+  }
+
+  if (value is Map<String, dynamic> && value['_v'] == 'transform') {
+    final transformerName = sdrGetVariable(value['_'], build);
+    final transformerFn = sdrTransformers[transformerName];
+
+    if (transformerFn == null) {
+      print("Unknown transformer: $transformerName");
+      return null;
+    }
+
+    return transformerFn(value, build);
   }
 
   if (value is Map && value['_v'] == 'raw') {

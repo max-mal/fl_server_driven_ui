@@ -1,0 +1,125 @@
+[
+    // Examples:
+
+    {
+        "_v": "transform",
+        "_": "and",
+        "a": {
+            "_v": "$a"
+        },
+        "b": {
+            "_v": "transform",
+            "_": "or",
+            "a": true,
+            "b": {
+                "_v": "$b"
+            }
+        }
+    },
+
+    // $a and (true || $b)
+
+    {
+        "_v": "transform",
+        "_": "add",
+        "a": {
+            "_v": "$a"
+        },
+        "b": {
+            "_v": "$b"
+        }
+    },
+
+    // $a + $b
+
+    {
+        "_v": "transform",
+        "_": "pipeline",
+        "actions": [
+            {
+                "_": "add",
+                "a": {
+                    "_v": "$a"
+                },
+                "b": {
+                    "_v": "$b"
+                }
+            },
+            {
+                "_": "substract",
+                "a": {
+                    "_v": "$ret"
+                },
+                "b": {
+                    "_v": "$c"
+                }
+            },
+            {
+                "_": "gt",
+                "a": {
+                    "_v": "$ret"
+                },
+                "b": 10
+            }
+        ]
+    },
+
+    // ($a + $b - $c) > 10?
+
+    {
+        "_v": "transform",
+        "_": "filter",
+        "list": {
+            "_v": "$list"
+        },
+        "fn": {
+            "_v": "transform",
+            "_": "pipeline",
+            "actions": [
+                {
+                    "_": "trim",
+                    "str": {
+                        "_v": "$item.name"
+                    }
+                },
+                {
+                    "_": "lowercase",
+                    "str": {
+                        "_v": "$ret"
+                    }
+                },
+                {
+                    "_": "contains",
+                    "a": {
+                        "_v": "$ret"
+                    },
+                    "b": {
+                        "_v": "transform",
+                        "_": "pipeline",
+                        "actions": [
+                            {
+                                "_": "trim",
+                                "str": {
+                                    "_v": "$searchTerm"
+                                }
+                            },
+                            {
+                                "_": "lowercase",
+                                "str": {
+                                    "_v": "$ret"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+    // list.where(
+    //  (item) => item.name
+    //            .trim()
+    //            .toLowerCase()
+    //            .contains(searchTerm.trim().toLowerCase())
+    // ).toList()
+
+]

@@ -162,6 +162,70 @@ class _TestAreaWidgetState extends State<TestAreaWidget> {
                       'text': 'Click Me!',
                     },
                   },
+                  {
+                    '\$': {
+                      'a': 3,
+                      'b': 4,
+                    },
+                    'type': 'text',
+                    'text': {
+                      "_v": "transform",
+                      "_": "and",
+                      "a": {
+                        "_v": "\$a",
+                      },
+                      "b": {
+                        "_v": "transform",
+                        "_": "or",
+                        "a": true,
+                        "b": {
+                          "_v": "\$b",
+                        }
+                      }
+                    },
+                  },
+                  {
+                    '\$': {
+                      'a': 3,
+                      'b': 4,
+                    },
+                    'type': 'text',
+                    'text': {
+                      "_v": "transform",
+                      "_": "add",
+                      "a": {"_v": "\$a"},
+                      "b": {"_v": "\$b"}
+                    },
+                  },
+                  {
+                    '\$': {
+                      'a': 3,
+                      'b': 4,
+                      'c': 1,
+                    },
+                    'type': 'text',
+                    'text': {
+                      "_v": "transform",
+                      "_": "pipeline",
+                      "actions": [
+                        {
+                          "_": "add",
+                          "a": {"_v": "\$a"},
+                          "b": {"_v": "\$b"}
+                        },
+                        {
+                          "_": "substract",
+                          "a": {"_v": "\$ret"},
+                          "b": {"_v": "\$c"}
+                        },
+                        {
+                          "_": "gt",
+                          "a": {"_v": "\$ret"},
+                          "b": 10
+                        }
+                      ]
+                    },
+                  },
                 ],
               },
             },
