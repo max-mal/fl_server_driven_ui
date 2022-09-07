@@ -30,6 +30,10 @@ Map<String, Widget Function(SdrBuildWidgetData)> sdrBuilders = {
   "icon": SdrBuilders.buildIcon,
   "dropdown_button": SdrBuilders.buildDropDownButton,
   "boolean": SdrBuilders.buildBoolean,
+  "ui_container": SdrBuilders.buildUiContainer,
+  "ui_hcontainer": SdrBuilders.buildUiHContainer,
+  "ui_area": SdrBuilders.buildUiArea,
+  "html": SdrBuilders.buildHtml,
 };
 
 Map<String, Function(Map<String, dynamic>, SdrBuildWidgetData)> sdrActions = {
@@ -68,7 +72,6 @@ Map<String, Function(Map<String, dynamic>, SdrBuildWidgetData)>
 
 Widget buildWidget(SdrBuildWidgetData build) {
   final data = build.data;
-  print('build: ${build.areaId}');
   String? type = data['type'];
 
   if (type == null) {
@@ -140,6 +143,10 @@ sdrUpdate(Map<String, dynamic> updateData) {
   Map<String, dynamic> areas = updateData['areas'] ?? {};
 
   for (String areaId in areas.keys) {
+    if (!sdrAreaRxVariables.containsKey(areaId)) {
+      sdrAreaRxVariables[areaId] = {};
+    }
+
     sdrAreaData[areaId] = SdrBuildWidgetData(
       areaId: areaId,
       data: areas[areaId],
@@ -149,14 +156,17 @@ sdrUpdate(Map<String, dynamic> updateData) {
   }
 
   List<dynamic> actions = updateData['actions'] ?? [];
-  executeActions(
-    actions,
-    SdrBuildWidgetData(
-      areaId: '_',
-      variables: {},
-      data: {},
-    ),
-  );
+
+  for (final action in actions) {
+    executeActions(
+      action,
+      SdrBuildWidgetData(
+        areaId: action['area'] ?? '_',
+        variables: {},
+        data: {},
+      ),
+    );
+  }
 }
 
 RxMap<String, Widget> sdrAreaWidget = RxMap<String, Widget>();

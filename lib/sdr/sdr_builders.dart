@@ -3,9 +3,13 @@ import 'dart:io';
 import 'package:cshell/sdr/sdr.dart';
 import 'package:cshell/sdr/sdr_area.dart';
 import 'package:cshell/widgets/audio_player.dart';
+import 'package:cshell/widgets/ui_area.dart';
+import 'package:cshell/widgets/ui_container.dart';
+import 'package:cshell/widgets/ui_hcontainer.dart';
 import 'package:flutter/material.dart';
 import 'package:cshell/extensions/color.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:get/get.dart';
 
 class SdrBuilders {
@@ -255,6 +259,7 @@ class SdrBuilders {
     final data = build.data;
     final controller = ScrollController();
     return SingleChildScrollView(
+      key: UniqueKey(),
       controller: controller,
       scrollDirection: _v(data['direction'], build) == 'horizontal'
           ? Axis.horizontal
@@ -484,6 +489,7 @@ class SdrBuilders {
     final data = build.data;
     final controller = TextEditingController(text: _v(data['value'], build));
     return TextField(
+      autofocus: _v(data['autofocus'], build) ?? false,
       controller: controller,
       decoration: InputDecoration.collapsed(
         hintText: _v(data['hint'], build),
@@ -588,5 +594,43 @@ class SdrBuilders {
     return data['true'] == null
         ? const SizedBox()
         : buildWidget(build.nested(_v(data['true'], build)));
+  }
+
+  static Widget buildUiContainer(SdrBuildWidgetData build) {
+    final data = build.data;
+    return UiContainer(
+      child: buildWidget(build.nested(_v(data['child'], build))),
+    );
+  }
+
+  static Widget buildUiHContainer(SdrBuildWidgetData build) {
+    final data = build.data;
+    return UiHContainer(
+      child: buildWidget(build.nested(_v(data['child'], build))),
+    );
+  }
+
+  static Widget buildUiArea(SdrBuildWidgetData build) {
+    final data = build.data;
+    return UiArea(
+      child: buildWidget(build.nested(_v(data['child'], build))),
+    );
+  }
+
+  static Widget buildHtml(SdrBuildWidgetData build) {
+    final data = build.data;
+
+    return HtmlWidget(
+      _v(data['html'], build),
+      baseUrl: data['url'] == null ? null : Uri.parse(_v(data['url'], build)),
+      onTapUrl: data['@url'] == null
+          ? null
+          : (url) {
+              final _build = build.nested(build.data);
+              _build.variables['url'] = url;
+              executeActions(_v(data['@url'], _build), _build);
+              return true;
+            },
+    );
   }
 }

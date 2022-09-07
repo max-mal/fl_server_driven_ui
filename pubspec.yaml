@@ -38,6 +38,7 @@ dependencies:
   http: ^0.13.5
   just_audio: any
   flutter_svg: ^1.0.3
+  flutter_widget_from_html_core: ^0.8.5+3
   # just_audio_mpv: any
 
 dev_dependencies:

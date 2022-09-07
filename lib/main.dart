@@ -3,6 +3,8 @@ import 'package:cshell/app.dart';
 import 'package:cshell/sdr/sdr.dart';
 import 'package:cshell/sdr/sdr_area.dart';
 import 'package:cshell/theme.dart';
+import 'package:cshell/widgets/ui_container.dart';
+import 'package:cshell/widgets/ui_hcontainer.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -78,6 +80,12 @@ class _TestAreaWidgetState extends State<TestAreaWidget> {
       ),
       body: Column(
         children: [
+          const UiContainer(
+            child: Text('Ui Container'),
+          ),
+          UiHContainer(
+            child: Text('Ui HContainer'),
+          ),
           TextButton(
             onPressed: () => makeUpdate(),
             child: const Text('Make Update'),

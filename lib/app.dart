@@ -20,7 +20,19 @@ class _AppWidgetState extends State<AppWidget> {
         () => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SdrArea(areaId: 'menu'),
+            Row(
+              children: [
+                const Expanded(child: SdrArea(areaId: 'menu')),
+                IconButton(
+                  onPressed: () => controller.initializeMenu(),
+                  icon: const Icon(Icons.refresh),
+                ),
+                IconButton(
+                  onPressed: () => Get.to(() => const TestAreaWidget()),
+                  icon: const Icon(Icons.bug_report),
+                ),
+              ],
+            ),
             controller.error.value != null
                 ? Expanded(
                     child: Center(
@@ -32,19 +44,6 @@ class _AppWidgetState extends State<AppWidget> {
                       areaId: 'main',
                     ),
                   ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: () => controller.initializeMenu(),
-                  icon: const Icon(Icons.refresh),
-                ),
-                IconButton(
-                  onPressed: () => Get.to(() => const TestAreaWidget()),
-                  icon: const Icon(Icons.bug_report),
-                ),
-              ],
-            ),
           ],
         ),
       ),
